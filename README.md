@@ -9,8 +9,8 @@ Martini middleware/handler for easy session management.
 package main
 
 import (
-  "github.com/go-martini/martini"
-  "github.com/martini-contrib/sessions"
+  "github.com/panjiang/martini"
+  "github.com/panjiang/sessions"
 )
 
 func main() {
