@@ -20,11 +20,11 @@
 package sessions
 
 import (
-	"github.com/go-martini/martini"
+	"net/http"
+
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
-	"log"
-	"net/http"
+	"github.com/panjiang/martini"
 )
 
 const (
@@ -74,8 +74,29 @@ type Session interface {
 
 // Sessions is a Middleware that maps a session.Session service into the Martini handler chain.
 // Sessions can use a number of storage solutions with the given store.
+func NewSessions(name string, store Store) martini.Handler {
+	return func(res http.ResponseWriter, r *http.Request, c martini.Context, l martini.ILogger) {
+		// Map to the Session interface
+		s := &session{name, r, l, store, nil, false}
+		c.MapTo(s, (*Session)(nil))
+
+		// Use before hook to save out the session
+		rw := res.(martini.ResponseWriter)
+		rw.Before(func(martini.ResponseWriter) {
+			if s.Written() {
+				check(s.Session().Save(r, res), l)
+			}
+		})
+
+		// clear the context, we don't need to use
+		// gorilla context and we don't want memory leaks
+		defer context.Clear(r)
+
+		c.Next()
+	}
+}
 func Sessions(name string, store Store) martini.Handler {
-	return func(res http.ResponseWriter, r *http.Request, c martini.Context, l *log.Logger) {
+	return func(res http.ResponseWriter, r *http.Request, c martini.Context, l martini.ILogger) {
 		// Map to the Session interface
 		s := &session{name, r, l, store, nil, false}
 		c.MapTo(s, (*Session)(nil))
@@ -99,7 +120,7 @@ func Sessions(name string, store Store) martini.Handler {
 type session struct {
 	name    string
 	request *http.Request
-	logger  *log.Logger
+	logger  martini.ILogger
 	store   Store
 	session *sessions.Session
 	written bool
@@ -159,7 +180,7 @@ func (s *session) Written() bool {
 	return s.written
 }
 
-func check(err error, l *log.Logger) {
+func check(err error, l martini.ILogger) {
 	if err != nil {
 		l.Printf(errorFormat, err)
 	}

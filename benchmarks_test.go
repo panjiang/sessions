@@ -1,10 +1,11 @@
 package sessions
 
 import (
-	"github.com/go-martini/martini"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/panjiang/martini"
 )
 
 func BenchmarkNoSessionsMiddleware(b *testing.B) {

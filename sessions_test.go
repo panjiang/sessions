@@ -1,11 +1,12 @@
 package sessions
 
 import (
-	"github.com/go-martini/martini"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/panjiang/martini"
 )
 
 func Test_Sessions(t *testing.T) {
